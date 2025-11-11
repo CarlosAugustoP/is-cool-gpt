@@ -1,13 +1,15 @@
 using System.Text.Json;
+using IsCool.Abstractions;
+using IsCool.DTO;
 using OpenAI.Chat;
-using Resumai.Abstractions;
+using OpenAI.Responses;
 
 
 namespace Resumai.Services.Application
 {
     public static class OpenAiService
     {
-        public static async Task<object> Call(PromptBuilder p)
+        public static async Task<IsCoolResponseDto> CallChat(PromptBuilder p)
         {
             ChatClient client = new(model: "gpt-4o", apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY"));
             var (options, prompt) = p.Build();
@@ -21,7 +23,18 @@ namespace Resumai.Services.Application
                 ResponseFormat = options
             });
             var json = response.Content[0].Text;
-            return JsonSerializer.Deserialize<object>(json)!;
+            return JsonSerializer.Deserialize<IsCoolResponseDto>(json)!;
+        }
+
+        public static async Task<string> CallChat(string input)
+        {
+            ChatClient client = new(model: "gpt-4o", apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY"));
+            var msgs = new List<ChatMessage>()
+            {
+                new UserChatMessage(input)
+            };
+            ChatCompletion response = await client.CompleteChatAsync(messages: msgs);
+            return response.Content[0].Text;
         }
     }
 }
