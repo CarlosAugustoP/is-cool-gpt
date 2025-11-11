@@ -7,7 +7,7 @@ namespace IsCool.Abstractions
     public class PromptBuilder
     {
         private string _userMsg = "";
-        private Models.User _user;
+        private Models.User? _user;
         public PromptBuilder WithUserMessage(string message)
         {
             _userMsg = message;
@@ -20,7 +20,11 @@ namespace IsCool.Abstractions
             return this;
         }
         public (ChatResponseFormat, string) Build()
-        {
+    {
+          if (_user == null)
+            {
+                throw new InvalidOperationException("User information must be provided.");
+            }
             var jsonSchema = BinaryData.FromString(@"
             {
               ""name"": ""IsCoolResponse"",

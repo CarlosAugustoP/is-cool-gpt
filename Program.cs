@@ -133,7 +133,6 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // Middlewares personalizados
-app.UseMiddleware<IsCool.Middlewares.UserValidationMiddleware>();
 app.UseMiddleware<IsCool.Middlewares.CatchExceptionMiddleware>();
 
 // Swagger
@@ -153,6 +152,8 @@ app.UseSwaggerUI(c =>
 // Autenticação e autorização
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<IsCool.Middlewares.UserValidationMiddleware>();
 
 // Controllers
 app.MapControllers();

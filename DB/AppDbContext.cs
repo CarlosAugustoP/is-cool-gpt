@@ -43,6 +43,14 @@ namespace IsCool.DB
                 .HasForeignKey(c => c.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
+
             modelBuilder.Entity<Chat>()
                 .HasMany(c => c.PromptMessage)
                 .WithOne(p => p.Chat)

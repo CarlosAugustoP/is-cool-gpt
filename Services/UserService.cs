@@ -30,7 +30,7 @@ namespace IsCool.Services
         }
         public async Task Register(string email, string name, string username, string studentOf, Models.Language preferredLanguage, string password)
         {
-            var existingUser = _db.Users.FirstOrDefault(u => u.Email == email);
+            var existingUser = _db.Users.FirstOrDefault(u => u.Email == email || u.Username == username);
             if (existingUser != null)
             {
                 throw new ConflictException("Email is already registered.");

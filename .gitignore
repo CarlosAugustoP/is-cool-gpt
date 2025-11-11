@@ -1,3 +1,8 @@
-obj/
+# ignore build output directories anywhere in the repo
 bin/
+obj/
+bin\Debug\net9.0
+obj
+obj\Debug\net9.0
+# local settings
 appsettings.json
