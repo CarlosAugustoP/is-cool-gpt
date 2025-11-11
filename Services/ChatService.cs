@@ -13,9 +13,11 @@ namespace IsCool.Services
     public class ChatService
     {
         private readonly AppDbContext _db;
-        public ChatService(AppDbContext db)
+        private readonly OpenAiService _openAiService;
+        public ChatService(AppDbContext db, OpenAiService openAiService)
         {
             _db = db;
+            _openAiService = openAiService;
         }
         public Guid StartChat(UserDTO currentUser)
         {
@@ -40,7 +42,7 @@ namespace IsCool.Services
                 .WithUserMessage(message)
                 .WithUser(user);
 
-            var response = await OpenAiService.CallChat(promptBuilder);
+            var response = await _openAiService.CallChat(promptBuilder);
 
             var toPersist = new
             {
@@ -63,7 +65,7 @@ namespace IsCool.Services
                 return chat.Name;
             }
 
-            var chatName = await OpenAiService.CallChat("Generate a concise and relevant name for a conversation about the following topic: " +
+            var chatName = await _openAiService.CallChat("Generate a concise and relevant name for a conversation about the following topic: " +
                 "Make it short, no more than 5 words, and avoid special characters.");
 
             chat.SetName(chatName);

@@ -20,6 +20,7 @@ namespace IsCool.Middlewares
 
         public async Task InvokeAsync(HttpContext context, AppDbContext db)
         {
+            Console.WriteLine("Invoking UserValidationMiddleware...");
             if (context.User.Identity?.IsAuthenticated == true)
             {
 

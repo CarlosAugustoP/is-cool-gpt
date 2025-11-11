@@ -3,6 +3,7 @@ using IsCool.Application;
 using IsCool.Auth;
 using IsCool.DB;
 using IsCool.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace IsCool.Services
@@ -22,20 +23,20 @@ namespace IsCool.Services
         }
         public async Task<string> Login(string email, string password)
         {
-            var user = _db.Users.FirstOrDefault(u => u.Email == email) 
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email) 
                 ?? throw new NotFoundException("Invalid credentials. Please try again.");
             bool isPasswordValid = PasswordHasher.VerifyPassword(password, user.PasswordHash);
             return isPasswordValid ? _jwt.GenerateToken(user) : throw new NotFoundException("Invalid credentials. Please try again.");
         }
-        public async Task Register(string email, string name, string username, string studentOf, Models.Language preferredLanguage)
+        public async Task Register(string email, string name, string username, string studentOf, Models.Language preferredLanguage, string password)
         {
             var existingUser = _db.Users.FirstOrDefault(u => u.Email == email);
             if (existingUser != null)
             {
                 throw new ConflictException("Email is already registered.");
             }
-            var passwordHash = PasswordHasher.HashPassword("defaultPassword123");
-            var newUser = new Models.User(name, username, email, passwordHash, studentOf, Models.Language.EN);
+            var passwordHash = PasswordHasher.HashPassword(password);
+            var newUser = new Models.User(name, username, email, passwordHash, studentOf, preferredLanguage);
             _db.Users.Add(newUser);
             await _db.SaveChangesAsync();
         }

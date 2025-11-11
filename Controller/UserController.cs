@@ -33,8 +33,14 @@ namespace IsCool.Controller
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDTO register)
         {
-            await _userService.Register(register.Email,
-                register.Name, register.UserName, register.StudentOf, register.Language);
+            await _userService.Register(
+                register.Email,
+                register.Name,
+                register.UserName,
+                register.StudentOf,
+                register.Language,
+                register.Password
+            );
             return Created();
         }
 

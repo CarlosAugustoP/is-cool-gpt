@@ -143,3 +143,7 @@ C:\Users\capv2\OneDrive\Documentos\DEV ( A PARTIR DE 9 2024)\cloud-proj\IsCool\o
 C:\Users\capv2\OneDrive\Documentos\DEV ( A PARTIR DE 9 2024)\cloud-proj\IsCool\obj\Debug\net9.0\IsCool.pdb
 C:\Users\capv2\OneDrive\Documentos\DEV ( A PARTIR DE 9 2024)\cloud-proj\IsCool\obj\Debug\net9.0\IsCool.genruntimeconfig.cache
 C:\Users\capv2\OneDrive\Documentos\DEV ( A PARTIR DE 9 2024)\cloud-proj\IsCool\obj\Debug\net9.0\ref\IsCool.dll
+C:\Users\capv2\OneDrive\Documentos\DEV ( A PARTIR DE 9 2024)\cloud-proj\IsCool\obj\Debug\net9.0\IsCool.sourcelink.json
+C:\Users\capv2\OneDrive\Documentos\DEV ( A PARTIR DE 9 2024)\cloud-proj\IsCool\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\capv2\OneDrive\Documentos\DEV ( A PARTIR DE 9 2024)\cloud-proj\IsCool\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\capv2\OneDrive\Documentos\DEV ( A PARTIR DE 9 2024)\cloud-proj\IsCool\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
