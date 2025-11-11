@@ -1,8 +1,11 @@
 # ignore build output directories anywhere in the repo
-bin/
-obj/
-bin\Debug\net9.0
-obj
-obj\Debug\net9.0
+# Ignore all bin/ and obj/ directories recursively
+**/bin/
+**/obj/
+
+# Optionally, if you only want to ignore the ones at the root:
+/bin/
+/obj/
+
 # local settings
 appsettings.json
