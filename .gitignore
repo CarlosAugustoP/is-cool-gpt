@@ -3,9 +3,5 @@
 **/bin/
 **/obj/
 
-# Optionally, if you only want to ignore the ones at the root:
-/bin/
-/obj/
-
 # local settings
 appsettings.json
