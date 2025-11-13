@@ -27,7 +27,7 @@ var builder = WebApplication.CreateBuilder(args);
 // 🐛 DEBUG MERDAZINHA (TEMPORÁRIO)
 // ============================
 // Verifica se o arquivo appsettings.json existe no diretório raiz do app.
-Console.Writeline("_________Verifing_________");
+Console.WriteLine("_________Verifing_________");
 var appSettingsPath = Path.Combine(builder.Environment.ContentRootPath, "appsettings.json");
 var fileExists = File.Exists(appSettingsPath);
 
