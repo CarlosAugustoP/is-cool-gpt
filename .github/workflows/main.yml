@@ -23,13 +23,12 @@ jobs:
       uses: actions/checkout@v4
 
     # -------------------------------------
-    # Etapa de Substituição/Criação de Configuração
+    # Etapa de Substituição/Criação de Configuração (Ainda necessária para o Build)
     # -------------------------------------
-    - name: 2. Criar appsettings.json para Build Segura
+    - name: 2. Criar appsettings.json para Build
       run: |
-        # ATENÇÃO DE SEGURANÇA: Estes valores de secrets serão embutidos na imagem Docker.
-        # A Etapa 6 garante que o Azure App Service irá SOBRESCREVER estes valores
-        # com configurações mais seguras no ambiente de PROD.
+        # ATENÇÃO: Os segredos SERÃO embutidos na imagem Docker.
+        # Estamos removendo a etapa de override para simplificar, mas mantendo a funcionalidade.
         cat <<EOF > appsettings.json
         {
           "Logging": {
@@ -44,10 +43,7 @@ jobs:
             "DefaultConnection": "${{ secrets.DB_CONNECTION_STRING }}"
           },
           "JwtSettings": {
-            "Secret": "${{ secrets.JWT_SECRET }}",
-            "Issuer": "IsCoolApp",
-            "Audience": "IsCoolUsers",
-            "ExpireMinutes": 60
+            "Secret": "${{ secrets.JWT_SECRET }}"
           },
           "OpenAiApiKey":"${{ secrets.OPENAI_API_KEY }}"
         }
@@ -81,22 +77,9 @@ jobs:
         file: ./Dockerfile
         
     # -------------------------------------
-    # Etapa de Deploy e Injeção de Variáveis (CD)
+    # Etapa de Deploy (CD) - Agora é a Etapa 6
     # -------------------------------------
-    - name: 6. Configurar Variáveis de Ambiente Secretas no App Service
-      # Adicione esta etapa para injetar as variáveis SECRETAS do GitHub como App Settings no Azure.
-      # Esta etapa SOBRESCREVE os valores embutidos na imagem Docker.
-      uses: azure/cli@v2
-      with:
-        inlineScript: |
-          echo "Configurando App Settings secretos no Azure App Service..."
-          az webapp config appsettings set --name ${{ env.AZURE_WEBAPP_NAME }} \
-            --resource-group SeuGrupoDeRecursos \
-            --settings "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING }}" \
-                       "JwtSettings__Secret=${{ secrets.JWT_SECRET }}" \
-                       "OpenAiApiKey=${{ secrets.OPENAI_API_KEY }}"
-
-    - name: 7. Deploy no Azure App Service for Containers
+    - name: 6. Deploy no Azure App Service for Containers
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
