@@ -163,7 +163,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseMiddleware<IsCool.Middlewares.UserValidationMiddleware>();
-
+app.UseCors();
 // Controllers
 app.MapControllers();
 
