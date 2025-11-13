@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using Resumai.Services.Application;
 
+
 namespace IsCool.Services
 {
     public class ChatService
