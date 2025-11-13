@@ -88,7 +88,7 @@ jobs:
       # Esta etapa SOBRESCREVE os valores embutidos na imagem Docker.
       uses: azure/cli@v2
       with:
-        inline-script: |
+        inlineScript: |
           echo "Configurando App Settings secretos no Azure App Service..."
           az webapp config appsettings set --name ${{ env.AZURE_WEBAPP_NAME }} \
             --resource-group SeuGrupoDeRecursos \
