@@ -1,0 +1,61 @@
+name: CI/CD da API IsCool para Azure App Service
+
+on:
+  push:
+    branches:
+      - main # O fluxo de trabalho é iniciado em qualquer push para o branch 'main'
+
+# Variáveis do Ambiente 
+env:
+  AZURE_WEBAPP_NAME: IsCoolApp       
+  ACR_LOGIN_SERVER: iscoolapp.azurecr.io 
+  REPOSITORY_NAME: iscool              
+  
+  # A imagem será tagueada com o hash do commit para rastreabilidade
+  IMAGE_NAME: iscoolapp.azurecr.io/iscool:${{ github.sha }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. Checkout do Código
+      uses: actions/checkout@v4
+
+    # -------------------------------------
+    # Etapa de Login e Autenticação
+    # -------------------------------------
+    - name: 2. Login no Azure (Usando Service Principal via AZURE_CREDENTIALS)
+      uses: azure/login@v2
+      with:
+        # Certifique-se de que este segredo foi criado no GitHub Settings
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 3. Login no Azure Container Registry (ACR)
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.ACR_LOGIN_SERVER }}
+        # Use credenciais de administrador ou um Service Principal com permissão PUSH
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    # -------------------------------------
+    # Etapa de Build e Push (CI)
+    # -------------------------------------
+    - name: 4. Build e Push da Imagem Docker
+      uses: docker/build-push-action@v5
+      with:
+        context: .        # Usa o Dockerfile no diretório raiz
+        push: true
+        tags: ${{ env.IMAGE_NAME }}
+        file: ./Dockerfile
+        
+    # -------------------------------------
+    # Etapa de Deploy (CD)
+    # -------------------------------------
+    - name: 5. Deploy no Azure App Service for Containers
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        # Não é necessário especificar o Resource Group se as credenciais do Azure tiverem escopo correto
+        images: ${{ env.IMAGE_NAME }} # Imagem que acabou de ser enviada para o ACR
