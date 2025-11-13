@@ -12,7 +12,8 @@ env:
   REPOSITORY_NAME: iscool              # Nome do repositório/imagem no ACR
   
   # A imagem será tagueada com o hash do commit para rastreabilidade
-  IMAGE_NAME: iscoolapp.azurecr.io/iscool:${{ github.sha }}
+  IMAGE_NAME_SHA: iscoolapp.azurecr.io/iscool:${{ github.sha }}
+  IMAGE_NAME_LATEST: iscoolapp.azurecr.io/iscool:latest
 
 jobs:
   build-and-deploy:
@@ -72,10 +73,10 @@ jobs:
       with:
         context: .        # Usa o Dockerfile no diretório raiz
         push: true
-        # CORREÇÃO: Adicionando DUAS tags, o SHA e a tag 'latest'
+        # CORREÇÃO: PUSH_TAGS envia as duas tags: o hash e 'latest'
         tags: |
-          ${{ env.ACR_LOGIN_SERVER }}/${{ env.REPOSITORY_NAME }}:${{ github.sha }}
-          ${{ env.ACR_LOGIN_SERVER }}/${{ env.REPOSITORY_NAME }}:latest 
+          ${{ env.IMAGE_NAME_SHA }}
+          ${{ env.IMAGE_NAME_LATEST }}
         file: ./Dockerfile
         
     # -------------------------------------
@@ -85,5 +86,5 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        # CORREÇÃO: Implantando a tag 'latest'
-        images: ${{ env.ACR_LOGIN_SERVER }}/${{ env.REPOSITORY_NAME }}:latest
+        # CORREÇÃO: Implantando a tag 'latest' para bater com o que o Portal espera
+        images: ${{ env.IMAGE_NAME_LATEST }}
