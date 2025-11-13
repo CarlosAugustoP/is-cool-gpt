@@ -28,7 +28,6 @@ jobs:
     - name: 2. Criar appsettings.json para Build
       run: |
         # ATENÇÃO: Os segredos SERÃO embutidos na imagem Docker.
-        # Estamos removendo a etapa de override para simplificar, mas mantendo a funcionalidade.
         cat <<EOF > appsettings.json
         {
           "Logging": {
@@ -73,7 +72,10 @@ jobs:
       with:
         context: .        # Usa o Dockerfile no diretório raiz
         push: true
-        tags: ${{ env.IMAGE_NAME }}
+        # CORREÇÃO: Adicionando DUAS tags, o SHA e a tag 'latest'
+        tags: |
+          ${{ env.ACR_LOGIN_SERVER }}/${{ env.REPOSITORY_NAME }}:${{ github.sha }}
+          ${{ env.ACR_LOGIN_SERVER }}/${{ env.REPOSITORY_NAME }}:latest 
         file: ./Dockerfile
         
     # -------------------------------------
@@ -83,4 +85,5 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        images: ${{ env.IMAGE_NAME }} # Imagem que acabou de ser enviada para o ACR
+        # CORREÇÃO: Implantando a tag 'latest'
+        images: ${{ env.ACR_LOGIN_SERVER }}/${{ env.REPOSITORY_NAME }}:latest
