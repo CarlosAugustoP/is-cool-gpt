@@ -43,7 +43,10 @@ jobs:
             "DefaultConnection": "${{ secrets.DB_CONNECTION_STRING }}"
           },
           "JwtSettings": {
-            "Secret": "${{ secrets.JWT_SECRET }}"
+            "Secret": "${{ secrets.JWT_SECRET }}",
+            "Issuer": "IsCoolApp",
+            "Audience": "IsCoolUsers",
+            "ExpireMinutes": 60
           },
           "OpenAiApiKey":"${{ secrets.OPENAI_API_KEY }}"
         }
