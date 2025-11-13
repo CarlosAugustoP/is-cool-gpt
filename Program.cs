@@ -27,7 +27,16 @@ builder.Services.AddPostgresConnection(builder.Configuration);
 
 // AutoMapper
 builder.Services.AddAutoMapper(cfg => { }, typeof(Program));
-
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.WithOrigins("https://seu-frontend-url.com")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
 // Controllers
 builder.Services.AddControllers();
 
