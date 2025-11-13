@@ -1,0 +1,103 @@
+name: CI/CD da API IsCool para Azure App Service
+
+on:
+  push:
+    branches:
+      - main # O fluxo de trabalho é iniciado em qualquer push para o branch 'main'
+
+# Variáveis do Ambiente
+env:
+  AZURE_WEBAPP_NAME: IsCoolApp          # Nome do seu App Service
+  ACR_LOGIN_SERVER: iscoolapp.azurecr.io # Nome do seu ACR
+  REPOSITORY_NAME: iscool              # Nome do repositório/imagem no ACR
+  
+  # A imagem será tagueada com o hash do commit para rastreabilidade
+  IMAGE_NAME: iscoolapp.azurecr.io/iscool:${{ github.sha }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. Checkout do Código
+      uses: actions/checkout@v4
+
+    # -------------------------------------
+    # Etapa de Substituição/Criação de Configuração
+    # -------------------------------------
+    - name: 2. Criar appsettings.json para Build Segura
+      run: |
+        # ATENÇÃO DE SEGURANÇA: Estes valores de secrets serão embutidos na imagem Docker.
+        # A Etapa 6 garante que o Azure App Service irá SOBRESCREVER estes valores
+        # com configurações mais seguras no ambiente de PROD.
+        cat <<EOF > appsettings.json
+        {
+          "Logging": {
+            "LogLevel": {
+              "Default": "Information",
+              "Microsoft": "Warning",
+              "Microsoft.Hosting.Lifetime": "Information"
+            }
+          },
+          "AllowedHosts": "*",
+          "ConnectionStrings": {
+            "DefaultConnection": "${{ secrets.DB_CONNECTION_STRING }}"
+          },
+          "JwtSettings": {
+            "Secret": "${{ secrets.JWT_SECRET }}",
+            "Issuer": "IsCoolApp",
+            "Audience": "IsCoolUsers",
+            "ExpireMinutes": 60
+          },
+          "OpenAiApiKey":"${{ secrets.OPENAI_API_KEY }}"
+        }
+        EOF
+        echo "appsettings.json criado com valores injetados dos secrets."
+
+    # -------------------------------------
+    # Etapa de Login e Autenticação
+    # -------------------------------------
+    - name: 3. Login no Azure (Usando Service Principal via AZURE_CREDENTIALS)
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 4. Login no Azure Container Registry (ACR)
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.ACR_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    # -------------------------------------
+    # Etapa de Build e Push (CI)
+    # -------------------------------------
+    - name: 5. Build e Push da Imagem Docker
+      uses: docker/build-push-action@v5
+      with:
+        context: .        # Usa o Dockerfile no diretório raiz
+        push: true
+        tags: ${{ env.IMAGE_NAME }}
+        file: ./Dockerfile
+        
+    # -------------------------------------
+    # Etapa de Deploy e Injeção de Variáveis (CD)
+    # -------------------------------------
+    - name: 6. Configurar Variáveis de Ambiente Secretas no App Service
+      # Adicione esta etapa para injetar as variáveis SECRETAS do GitHub como App Settings no Azure.
+      # Esta etapa SOBRESCREVE os valores embutidos na imagem Docker.
+      uses: azure/cli@v2
+      with:
+        inline-script: |
+          echo "Configurando App Settings secretos no Azure App Service..."
+          az webapp config appsettings set --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --resource-group SeuGrupoDeRecursos \
+            --settings "ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING }}" \
+                       "JwtSettings__Secret=${{ secrets.JWT_SECRET }}" \
+                       "OpenAiApiKey=${{ secrets.OPENAI_API_KEY }}"
+
+    - name: 7. Deploy no Azure App Service for Containers
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        images: ${{ env.IMAGE_NAME }} # Imagem que acabou de ser enviada para o ACR
