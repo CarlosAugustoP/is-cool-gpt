@@ -15,11 +15,32 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ============================
 // 🔧 CONFIGURAÇÕES DE SERVIÇOS
+// ============================
+// ============================
+// 🐛 DEBUG MERDAZINHA (TEMPORÁRIO)
+// ============================
+// Verifica se o arquivo appsettings.json existe no diretório raiz do app.
+Console.Writeline("_________Verifing_________");
+var appSettingsPath = Path.Combine(builder.Environment.ContentRootPath, "appsettings.json");
+var fileExists = File.Exists(appSettingsPath);
+
+if (fileExists)
+{
+    Console.WriteLine($"[DEBUG-FILE] appsettings.json: ENCONTRADO em {appSettingsPath}");
+}
+else
+{
+    Console.WriteLine($"[DEBUG-FILE] appsettings.json: FALHA - NÃO ENCONTRADO em {appSettingsPath}");
+}
+// ============================
+// FIM DO DEBUG MERDAZINHA
 // ============================
 
 // Conexão com o banco
