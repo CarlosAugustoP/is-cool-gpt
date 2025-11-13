@@ -10,7 +10,6 @@ RUN dotnet restore "IsCool.csproj"
 COPY . .
 
 # Compila e PUBLICA a aplicação na pasta /app/publish
-# Esta é a etapa CRUCIAL que faltava.
 RUN dotnet publish "IsCool.csproj" -c Release -o /app/publish
 
 # ----------------------------------------------------------------------------------
@@ -21,6 +20,9 @@ WORKDIR /app
 
 # Copia os arquivos publicados da etapa 'build' para o contêiner final
 COPY --from=build /app/publish .
+
+# 🎯 INCLUSÃO CORRETA: Informa à plataforma que esta é a porta do serviço.
+EXPOSE 8080 
 
 # Define o ponto de entrada da aplicação
 ENTRYPOINT ["dotnet", "IsCool.dll"]
