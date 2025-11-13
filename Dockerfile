@@ -9,6 +9,7 @@ RUN dotnet restore "IsCool.csproj"
 # Copia o restante do código
 COPY . .
 
+
 # Compila e PUBLICA a aplicação na pasta /app/publish
 RUN dotnet publish "IsCool.csproj" -c Release -o /app/publish
 
