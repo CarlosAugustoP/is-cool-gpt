@@ -1,6 +1,5 @@
 
 ﻿using System.Security.Claims;
-using AutoMapper;
 using IsCool.DB;
 using IsCool.DTO;
 using Microsoft.AspNetCore.Http;
@@ -10,12 +9,10 @@ namespace IsCool.Middlewares
     public class UserValidationMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IMapper _mapper;
 
-        public UserValidationMiddleware(RequestDelegate next, IMapper mapper)
+        public UserValidationMiddleware(RequestDelegate next)
         {
             _next = next;
-            _mapper = mapper;
         }
 
         public async Task InvokeAsync(HttpContext context, AppDbContext db)

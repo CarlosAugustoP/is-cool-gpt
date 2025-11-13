@@ -18,7 +18,7 @@ namespace IsCool.Controller
 
         [HttpGet("me")]
         [RequireProfileFilter]
-        public async Task<IActionResult> Me()
+        public IActionResult Me()
         {
             return Ok(Result<UserDTO>.Success(CurrentUser!));
         }

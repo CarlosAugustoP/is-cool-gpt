@@ -1,5 +1,5 @@
 # Use a imagem oficial do .NET SDK para a etapa de build
-FROM mcr.microsoft.com/dotnet/sdk:9.0-preview AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copia o arquivo de projeto e restaura as dependências
@@ -21,7 +21,7 @@ RUN dotnet publish "IsCool.csproj" -c Release -o /app/publish
 COPY appsettings.json /app/publish/
 
 # Etapa final: Usa a imagem de runtime (menor)
-FROM mcr.microsoft.com/dotnet/aspnet:9.0-preview AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
 # Copia a saída da publicação da etapa 'build' para a imagem final

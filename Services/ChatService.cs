@@ -83,20 +83,20 @@ namespace IsCool.Services
         {
             if (pageNumber < 1 || pageSize < 1) throw new DomainException("Invalid request");
 
-            return _db.Chats
+            return await _db.Chats
                 .Where(x => x.UserId == user.Id)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .ToDictionary(x => x.Id, x => x.Name);
+                .ToDictionaryAsync(x => x.Id, x => x.Name);
         }
 
         public async Task<List<MessageDTO>> GetByChat(UserDTO user, Guid chatId, int pageNumber, int pageSize)
         {
             if (pageNumber < 1 || pageSize < 1) throw new DomainException("Invalid request");
 
-            var firstQuery = _db.Chats
+            var firstQuery = await _db.Chats
                 .Include(x => x.PromptMessage)
-                .FirstOrDefault(x => x.UserId == user.Id && x.Id == chatId)
+                .FirstOrDefaultAsync(x => x.UserId == user.Id && x.Id == chatId)
                 ?? throw new NotFoundException("Could not find chat");
 
             return firstQuery.PromptMessage
