@@ -1,5 +1,5 @@
 name: CI/CD da API IsCool para Azure App Service
-
+#PLEASE WORK
 on:
   push:
     branches:
