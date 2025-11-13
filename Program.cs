@@ -30,6 +30,7 @@ var builder = WebApplication.CreateBuilder(args);
 Console.WriteLine("_________Verifing_________");
 var appSettingsPath = Path.Combine(builder.Environment.ContentRootPath, "appsettings.json");
 var fileExists = File.Exists(appSettingsPath);
+Console.WriteLine("_________Verifing_________");
 
 if (fileExists)
 {
