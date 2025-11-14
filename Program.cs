@@ -54,7 +54,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         policy =>
         {
-            policy.WithOrigins("https://seu-frontend-url.com")
+            policy.WithOrigins("https://iscool-your-smart-learning-assistan.vercel.app")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
