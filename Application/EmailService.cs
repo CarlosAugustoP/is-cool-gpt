@@ -6,6 +6,7 @@ namespace IsCool.Application {
     {
         private readonly string AuthenticationPassword = authenticationPassword;
 
+        
         public async Task SendEmail(string to, string body, string subject)
         {
             var email = new MimeMessage();
