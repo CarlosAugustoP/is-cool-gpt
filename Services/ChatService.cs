@@ -39,7 +39,7 @@ namespace IsCool.Services
 
             var user = _db.Users.FirstOrDefault(u => u.Id == currentUser.Id)
                 ?? throw new NotFoundException("User not found");
-
+            
             var promptBuilder = new PromptBuilder()
                 .WithUserMessage(message)
                 .WithUser(user);

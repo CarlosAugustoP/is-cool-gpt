@@ -11,6 +11,7 @@ namespace IsCool.DI
         public static IServiceCollection AddPostgresConnection(this IServiceCollection services, IConfiguration configuration)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
+            Console.WriteLine($"[DEBUG-CONNECTION] Using connection string: {connectionString}");
             services.AddDbContext<AppDbContext>(options =>
               options.UseNpgsql(connectionString));
 
