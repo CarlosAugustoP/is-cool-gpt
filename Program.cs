@@ -88,7 +88,7 @@ builder.Services.AddFusionCache().AsHybridCache();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
 var key = Encoding.ASCII.GetBytes(jwtSettings!.Secret);
-Console.WriteLine("JWT Secret length: {Length} bytes", key.Length);
+Console.WriteLine("JWT Secret length:" + key.Length + "bytes");
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
