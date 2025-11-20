@@ -1,15 +1,19 @@
-name: CI/CD da API IsCool para Azure App Service
-#PLEASE WORK
+name: CI/CD da API IsCool para Azure Container Apps
+
 on:
   push:
     branches:
       - main # O fluxo de trabalho é iniciado em qualquer push para o branch 'main'
+  workflow_dispatch:
 
-# Variáveis do Ambiente
+# Variáveis do Ambiente (Corrigidas para Container Apps)
 env:
-  AZURE_WEBAPP_NAME: IsCoolApp          # Nome do seu App Service
   ACR_LOGIN_SERVER: iscoolapp.azurecr.io # Nome do seu ACR
   REPOSITORY_NAME: iscool              # Nome do repositório/imagem no ACR
+  
+  # VARIÁVEIS ACA - Usam os nomes definidos no Portal do Azure
+  AZURE_CONTAINER_APP: iscool-api      # Nome do seu Container App (Ex: 'iscool-api')
+  AZURE_CONTAINER_APP_RESOURCE_GROUP: ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} # Grupo de Recursos do ACA
   
   # A imagem será tagueada com o hash do commit para rastreabilidade
   IMAGE_NAME_SHA: iscoolapp.azurecr.io/iscool:${{ github.sha }}
@@ -24,11 +28,11 @@ jobs:
       uses: actions/checkout@v4
 
     # -------------------------------------
-    # Etapa de Substituição/Criação de Configuração (Ainda necessária para o Build)
+    # Etapa 2: CRIAÇÃO DO appsettings.json
+    # O arquivo é criado com os secrets do GitHub e incluído no Docker Build.
     # -------------------------------------
     - name: 2. Criar appsettings.json para Build
       run: |
-        # ATENÇÃO: Os segredos SERÃO embutidos na imagem Docker.
         cat <<EOF > appsettings.json
         {
           "Logging": {
@@ -53,20 +57,24 @@ jobs:
         EOF
         echo "appsettings.json criado com valores injetados dos secrets."
 
-    - name: Instalar jq
+    # -------------------------------------
+    # Etapa 3 & 4: Adicionadas para instalar e validar JSON com JQ
+    # -------------------------------------
+    - name: 3. Instalar jq para Validação JSON
       run: sudo apt-get update && sudo apt-get install -y jq
 
-    - name: Validar JSON
+    - name: 4. Validar Sintaxe JSON do appsettings.json
       run: jq . appsettings.json
+
     # -------------------------------------
-    # Etapa de Login e Autenticação
+    # Etapa de Login e Autenticação (Renumerada)
     # -------------------------------------
-    - name: 3. Login no Azure (Usando Service Principal via AZURE_CREDENTIALS)
+    - name: 5. Login no Azure (Usando Service Principal via AZURE_CREDENTIALS)
       uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 4. Login no Azure Container Registry (ACR)
+    - name: 6. Login no Azure Container Registry (ACR)
       uses: docker/login-action@v3
       with:
         registry: ${{ env.ACR_LOGIN_SERVER }}
@@ -74,25 +82,25 @@ jobs:
         password: ${{ secrets.ACR_PASSWORD }}
 
     # -------------------------------------
-    # Etapa de Build e Push (CI)
+    # Etapa de Build e Push (CI) (Renumerada)
     # -------------------------------------
-    - name: 5. Build e Push da Imagem Docker
+    - name: 7. Build e Push da Imagem Docker
       uses: docker/build-push-action@v5
       with:
-        context: .        # Usa o Dockerfile no diretório raiz
+        context: .          # Usa o Dockerfile no diretório raiz
         push: true
-        # CORREÇÃO: PUSH_TAGS envia as duas tags: o hash e 'latest'
         tags: |
           ${{ env.IMAGE_NAME_SHA }}
           ${{ env.IMAGE_NAME_LATEST }}
         file: ./Dockerfile
         
     # -------------------------------------
-    # Etapa de Deploy (CD) - Agora é a Etapa 6
+    # 🚀 Etapa 8: DEPLOY NO AZURE CONTAINER APPS (Renumerada)
     # -------------------------------------
-    - name: 6. Deploy no Azure App Service for Containers
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        # CORREÇÃO: Implantando a tag 'latest' para bater com o que o Portal espera
-        images: ${{ env.IMAGE_NAME_LATEST }}
+    - name: 8. Deploy no Azure Container Apps
+      run: |
+        az containerapp update \
+          --name ${{ env.AZURE_CONTAINER_APP }} \
+          --resource-group ${{ env.AZURE_CONTAINER_APP_RESOURCE_GROUP }} \
+          --image ${{ env.IMAGE_NAME_LATEST }} \
+          --target-port 8080 # Porta interna do Kestrel (conforme seu Dockerfile)
