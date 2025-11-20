@@ -12,8 +12,7 @@ env:
   REPOSITORY_NAME: iscool              # Nome do repositório/imagem no ACR
   
   # VARIÁVEIS ACA - Usam os nomes definidos no Portal do Azure
-  AZURE_CONTAINER_APP: iscool-aca-env
-  # Nome do seu Container App (Ex: 'iscool-api')
+  AZURE_CONTAINER_APP: iscool-api      # Nome do seu Container App (Ex: 'iscool-api')
   AZURE_CONTAINER_APP_RESOURCE_GROUP: ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} # Grupo de Recursos do ACA
   
   # A imagem será tagueada com o hash do commit para rastreabilidade
@@ -96,12 +95,12 @@ jobs:
         file: ./Dockerfile
         
     # -------------------------------------
-    # 🚀 Etapa 8: DEPLOY NO AZURE CONTAINER APPS (Renumerada)
+    # 🚀 Etapa 8: DEPLOY NO AZURE CONTAINER APPS (CORRIGIDA)
+    # Target port é configurada apenas na criação e não é necessária aqui.
     # -------------------------------------
     - name: 8. Deploy no Azure Container Apps
       run: |
         az containerapp update \
           --name ${{ env.AZURE_CONTAINER_APP }} \
           --resource-group ${{ env.AZURE_CONTAINER_APP_RESOURCE_GROUP }} \
-          --image ${{ env.IMAGE_NAME_LATEST }} \
-          --target-port 8080 # Porta interna do Kestrel (conforme seu Dockerfile)
+          --image ${{ env.IMAGE_NAME_LATEST }}
