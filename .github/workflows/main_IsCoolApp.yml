@@ -12,7 +12,7 @@ env:
   REPOSITORY_NAME: iscool              # Nome do repositório/imagem no ACR
   
   # VARIÁVEIS ACA - Usam os nomes definidos no Portal do Azure
-  AZURE_CONTAINER_APP: iscool-api      # Nome do seu Container App (Ex: 'iscool-api')
+  AZURE_CONTAINER_APP: iscool-aca-env     # Nome do seu Container App (Ex: 'iscool-api')
   AZURE_CONTAINER_APP_RESOURCE_GROUP: ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} # Grupo de Recursos do ACA
   
   # A imagem será tagueada com o hash do commit para rastreabilidade
