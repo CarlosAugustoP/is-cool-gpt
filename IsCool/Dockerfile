@@ -8,18 +8,18 @@ WORKDIR /src
 # Assume que a Solution (.sln) está na raiz do repositório.
 COPY *.sln .
 
-# Copia os arquivos de projeto.
-# IsCool/IsCool.csproj e IsCool.Tests/IsCool.Tests.csproj são irmãos no repositório.
+# Copia os arquivos de projeto (incluindo o arquivo principal IsCool.csproj).
 COPY ["IsCool/IsCool.csproj", "IsCool/"]
 COPY ["IsCool.Tests/IsCool.Tests.csproj", "IsCool.Tests/"]
 
-# Restaura as dependências (usa o arquivo .sln implicitamente ou o IsCool.csproj)
-# Rodamos restore no projeto principal
+# Restaura as dependências
 RUN dotnet restore "IsCool/IsCool.csproj"
 
-# Copia o restante do código da aplicação, incluindo o appsettings.json 
-# criado pelo GitHub Action em ./IsCool/appsettings.json
-COPY . .
+# CRUCIAL: Copia TODO o conteúdo do diretório IsCool/ para o WORKDIR /src/IsCool/.
+# Isso garante que todos os Controllers, Services e o appsettings.json
+# criado pelo CI/CD estejam disponíveis na pasta de trabalho para o BUILD.
+# O contexto de build é a raiz do repo, então ele pega IsCool/ e joga para /src/IsCool/
+COPY IsCool/ .
 WORKDIR "/src/IsCool"
 
 # Faz o build da aplicação
@@ -30,8 +30,6 @@ RUN dotnet build "IsCool.csproj" -c Release -o /app/build
 # -----------------------------------------------------
 FROM build AS publish
 WORKDIR "/src/IsCool"
-# O dotnet publish já copia o appsettings.json (que está em /src/IsCool/) 
-# para o diretório de publicação (/app/publish).
 RUN dotnet publish "IsCool.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # -----------------------------------------------------
@@ -39,7 +37,7 @@ RUN dotnet publish "IsCool.csproj" -c Release -o /app/publish /p:UseAppHost=fals
 # -----------------------------------------------------
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-# Copia APENAS os binários publicados (que já contêm o appsettings.json)
+# Copia APENAS os binários publicados (que já contêm o appsettings.json e a IsCool.dll)
 COPY --from=publish /app/publish .
 
 # Define a porta do Container App para 8080 (padrão)

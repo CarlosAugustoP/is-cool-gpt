@@ -119,7 +119,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "IsCool API",
         Version = "v1",
-        Description = "API do projeto IsCool"
+        Description = "API do projeto IsCool V1"
     });
 
     // 🔒 Configuração do esquema de segurança JWT (para o cadeado)
