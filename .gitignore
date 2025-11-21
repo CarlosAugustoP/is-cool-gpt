@@ -4,4 +4,4 @@
 **/obj/
 
 # local settings
-appsettings.json
+app/appsettings.json
