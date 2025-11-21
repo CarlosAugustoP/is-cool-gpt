@@ -1,9 +1,9 @@
-# 📘 IsCool API
+# IsCool API
 
 The **IsCool API** is a modern and scalable backend built with **ASP.NET Core 8.0**, designed to deliver dynamic educational features. It integrates advanced AI capabilities using the **OpenAI API**, enabling on-demand generation of personalized educational content, summaries, and prompts.
 
 
-## 🚀 Project Overview
+## Project Overview
 
 - Backend built with **ASP.NET Core 8**
 - Automated deployment to **Azure Container Apps**
@@ -14,7 +14,7 @@ The **IsCool API** is a modern and scalable backend built with **ASP.NET Core 8.
 - CI/CD pipeline orchestrated with **GitHub Actions**
 
 
-## 🧱 Core Architecture & Features
+## Core Architecture & Features
 
 | Component | Details |
 |-----------|----------|
