@@ -3,19 +3,20 @@ name: CI/CD da API IsCool para Azure Container Apps
 on:
   push:
     branches:
-      - main # Dispara o pipeline a cada push na main
+      - main # O fluxo de trabalho é iniciado em qualquer push para o branch 'main'
   workflow_dispatch:
 
+# Variáveis do Ambiente (Corrigidas para Container Apps)
 env:
-  # Configurações do Registro
-  ACR_LOGIN_SERVER: iscoolapp.azurecr.io
-  REPOSITORY_NAME: iscool
+  ACR_LOGIN_SERVER: iscoolapp.azurecr.io # Nome do seu ACR
+  REPOSITORY_NAME: iscool              # Nome do repositório/imagem no ACR
   
-  # Configurações do Azure Container Apps
-  AZURE_CONTAINER_APP: iscool-aca-env
-  AZURE_CONTAINER_APP_RESOURCE_GROUP: ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }}
+  # VARIÁVEIS ACA - Usam os nomes definidos no Portal do Azure
+  # CORREÇÃO 1: Retorna ao valor 'iscool-aca-env' conforme solicitação do usuário.
+  AZURE_CONTAINER_APP: iscool-aca-env      # Nome do seu Container App (ou Ambiente)
+  AZURE_CONTAINER_APP_RESOURCE_GROUP: ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }} # Grupo de Recursos do ACA
   
-  # Tags da imagem
+  # A imagem será tagueada com o hash do commit para rastreabilidade
   IMAGE_NAME_SHA: iscoolapp.azurecr.io/iscool:${{ github.sha }}
   IMAGE_NAME_LATEST: iscoolapp.azurecr.io/iscool:latest
 
@@ -24,35 +25,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # -------------------------------------
-    # 1. Checkout e Preparação
-    # -------------------------------------
     - name: 1. Checkout do Código
       uses: actions/checkout@v4
 
+    # -------------------------------------
+    # 🧪 Etapas 2 & 3: EXECUÇÃO DOS TESTES UNITÁRIOS
+    # -------------------------------------
     - name: 2. Setup .NET SDK
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '8.0.x' # Garante a versão correta do SDK
 
-    # -------------------------------------
-    # 🧪 3. Testes Unitários (Blindagem) - CORREÇÃO CRUCIAL
-    # -------------------------------------
     - name: 3. Executar Testes Unitários
       run: |
-        # CORREÇÃO CRUCIAL 1: Explicitamente restaura pacotes para o projeto de testes.
-        # Isso corrige o erro NETSDK1004 ("Assets file not found").
-        dotnet restore ./IsCool.Tests/IsCool.Tests.csproj
-        
-        # O teste é executado AGORA SEM o restore, mas com o build implícito.
+        # Garante que as dependências sejam restauradas para a solução inteira.
+        dotnet restore
+        # CORREÇÃO: Executa os testes unitários, direcionando explicitamente ao projeto de testes.
         dotnet test ./IsCool.Tests/IsCool.Tests.csproj --no-restore --verbosity normal
 
+
     # -------------------------------------
-    # 4. Configuração (appsettings.json)
+    # Etapa 4: CRIAÇÃO DO appsettings.json (Necessário para o build no Docker)
     # -------------------------------------
-    - name: 4. Criar appsettings.json com Secrets (No Diretório IsCool/)
+    - name: 4. Criar appsettings.json para Build
       run: |
-        # CORREÇÃO: O arquivo é criado DENTRO da pasta da aplicação (IsCool/)
+        # CRUCIAL: Cria o arquivo dentro da pasta da aplicação (IsCool/)
         cat <<EOF > IsCool/appsettings.json
         {
           "Logging": {
@@ -75,43 +72,51 @@ jobs:
           "OpenAiApiKey":"${{ secrets.OPENAI_API_KEY }}"
         }
         EOF
-        echo "appsettings.json criado com sucesso em IsCool/."
-
-    - name: 5. Instalar jq e Validar JSON
-      run: |
-        sudo apt-get update && sudo apt-get install -y jq
-        # CORREÇÃO: Valida o arquivo no caminho correto (IsCool/appsettings.json)
-        jq . IsCool/appsettings.json > /dev/null
+        echo "appsettings.json criado com valores injetados dos secrets em IsCool/."
 
     # -------------------------------------
-    # 5. Autenticação e Build Docker
+    # Etapa 5 & 6: Validação JSON
     # -------------------------------------
-    - name: 6. Login no Azure
+    - name: 5. Instalar jq para Validação JSON
+      run: sudo apt-get update && sudo apt-get install -y jq
+
+    - name: 6. Validar Sintaxe JSON do appsettings.json
+      # CORREÇÃO: Valida o arquivo no caminho correto (IsCool/appsettings.json)
+      run: jq . IsCool/appsettings.json
+
+    # -------------------------------------
+    # Etapa de Login e Autenticação 
+    # -------------------------------------
+    - name: 7. Login no Azure (Usando Service Principal via AZURE_CREDENTIALS)
       uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 7. Login no Azure Container Registry (ACR)
+    - name: 8. Login no Azure Container Registry (ACR)
       uses: docker/login-action@v3
       with:
         registry: ${{ env.ACR_LOGIN_SERVER }}
         username: ${{ secrets.ACR_USERNAME }}
         password: ${{ secrets.ACR_PASSWORD }}
 
-    - name: 8. Build e Push da Imagem Docker
+    # -------------------------------------
+    # Etapa 9: Build e Push (CI) - CORREÇÃO DO CAMINHO DO DOCKERFILE
+    # -------------------------------------
+    - name: 9. Build e Push da Imagem Docker
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: .          # Contexto na raiz do repositório
         push: true
         tags: |
           ${{ env.IMAGE_NAME_SHA }}
           ${{ env.IMAGE_NAME_LATEST }}
-        file: ./Dockerfile
-
+        # CORREÇÃO 2: O Dockerfile está em IsCool/Dockerfile, não no raiz.
+        file: IsCool/Dockerfile 
+        
     # -------------------------------------
-    # 🚀 6. Deploy no Azure Container Apps
+    # 🚀 Etapa 10: DEPLOY NO AZURE CONTAINER APPS
     # -------------------------------------
-    - name: 9. Deploy (Update) no Azure Container Apps
+    - name: 10. Deploy no Azure Container Apps
       run: |
         az containerapp update \
           --name ${{ env.AZURE_CONTAINER_APP }} \
