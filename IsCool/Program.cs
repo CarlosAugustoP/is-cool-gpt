@@ -18,7 +18,7 @@ using System.Text;
 using System;
 using System.IO;
 
-
+Console.WriteLine("Starting IsCool Application...");
 var builder = WebApplication.CreateBuilder(args);
 
 // ============================
