@@ -3,16 +3,19 @@ name: CI/CD da API IsCool para Azure Container Apps
 on:
   push:
     branches:
-      - main 
+      - main # Dispara o pipeline a cada push na main
   workflow_dispatch:
 
 env:
+  # Configurações do Registro
   ACR_LOGIN_SERVER: iscoolapp.azurecr.io
   REPOSITORY_NAME: iscool
   
+  # Configurações do Azure Container Apps
   AZURE_CONTAINER_APP: iscool-aca-env
   AZURE_CONTAINER_APP_RESOURCE_GROUP: ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }}
   
+  # Tags da imagem
   IMAGE_NAME_SHA: iscoolapp.azurecr.io/iscool:${{ github.sha }}
   IMAGE_NAME_LATEST: iscoolapp.azurecr.io/iscool:latest
 
@@ -21,6 +24,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # -------------------------------------
+    # 1. Checkout e Preparação
+    # -------------------------------------
     - name: 1. Checkout do Código
       uses: actions/checkout@v4
 
@@ -29,11 +35,21 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
+    # -------------------------------------
+    # 🧪 3. Testes Unitários (Blindagem) - CORREÇÃO CRUCIAL
+    # -------------------------------------
     - name: 3. Executar Testes Unitários
       run: |
-        dotnet restore
+        # CORREÇÃO CRUCIAL 1: Explicitamente restaura pacotes para o projeto de testes.
+        # Isso corrige o erro NETSDK1004 ("Assets file not found").
+        dotnet restore ./IsCool.Tests/IsCool.Tests.csproj
+        
+        # O teste é executado AGORA SEM o restore, mas com o build implícito.
         dotnet test ./IsCool.Tests/IsCool.Tests.csproj --no-restore --verbosity normal
 
+    # -------------------------------------
+    # 4. Configuração (appsettings.json)
+    # -------------------------------------
     - name: 4. Criar appsettings.json com Secrets (No Diretório IsCool/)
       run: |
         # CORREÇÃO: O arquivo é criado DENTRO da pasta da aplicação (IsCool/)
@@ -67,6 +83,9 @@ jobs:
         # CORREÇÃO: Valida o arquivo no caminho correto (IsCool/appsettings.json)
         jq . IsCool/appsettings.json > /dev/null
 
+    # -------------------------------------
+    # 5. Autenticação e Build Docker
+    # -------------------------------------
     - name: 6. Login no Azure
       uses: azure/login@v2
       with:
@@ -89,6 +108,9 @@ jobs:
           ${{ env.IMAGE_NAME_LATEST }}
         file: ./Dockerfile
 
+    # -------------------------------------
+    # 🚀 6. Deploy no Azure Container Apps
+    # -------------------------------------
     - name: 9. Deploy (Update) no Azure Container Apps
       run: |
         az containerapp update \
