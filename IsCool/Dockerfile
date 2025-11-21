@@ -1,34 +1,50 @@
-# Use a imagem oficial do .NET SDK para a etapa de build
+# -----------------------------------------------------
+# Etapa 1: Build (MCR .NET SDK)
+# -----------------------------------------------------
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copia o arquivo de projeto e restaura as dependências
-COPY ["IsCool.csproj", "./"]
-RUN dotnet restore "IsCool.csproj"
+# Copia e restaura a solução e os projetos para garantir cache eficiente.
+# Assume que a Solution (.sln) está na raiz do repositório.
+COPY *.sln .
 
-# Copia o restante do código-fonte da aplicação (incluindo o appsettings.json criado pelo CI)
+# Copia os arquivos de projeto.
+# IsCool/IsCool.csproj e IsCool.Tests/IsCool.Tests.csproj são irmãos no repositório.
+COPY ["IsCool/IsCool.csproj", "IsCool/"]
+COPY ["IsCool.Tests/IsCool.Tests.csproj", "IsCool.Tests/"]
+
+# Restaura as dependências (usa o arquivo .sln implicitamente ou o IsCool.csproj)
+# Rodamos restore no projeto principal
+RUN dotnet restore "IsCool/IsCool.csproj"
+
+# Copia o restante do código da aplicação, incluindo o appsettings.json 
+# criado pelo GitHub Action em ./IsCool/appsettings.json
 COPY . .
+WORKDIR "/src/IsCool"
 
-# Executa o comando de publicação
-RUN dotnet publish "IsCool.csproj" -c Release -o /app/publish
+# Faz o build da aplicação
+RUN dotnet build "IsCool.csproj" -c Release -o /app/build
 
-# =========================================================================
-# 🚩 CORREÇÃO FINAL: Cópia Explícita do appsettings.json
-#
-# O arquivo está em /src (WORKDIR). Usamos o path relativo.
-# Copia o arquivo de configuração da raiz do build (/src) para o destino da publicação (/app/publish).
-# =========================================================================
-COPY appsettings.json /app/publish/
+# -----------------------------------------------------
+# Etapa 2: Publicação (Criação de Binários)
+# -----------------------------------------------------
+FROM build AS publish
+WORKDIR "/src/IsCool"
+# O dotnet publish já copia o appsettings.json (que está em /src/IsCool/) 
+# para o diretório de publicação (/app/publish).
+RUN dotnet publish "IsCool.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# Etapa final: Usa a imagem de runtime (menor)
+# -----------------------------------------------------
+# Etapa 3: Final (MCR ASPNET Runtime)
+# -----------------------------------------------------
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
+# Copia APENAS os binários publicados (que já contêm o appsettings.json)
+COPY --from=publish /app/publish .
 
-# Copia a saída da publicação da etapa 'build' para a imagem final
-COPY --from=build /app/publish .
-
-# Expõe a porta que é usada pelo Kestrel (8080, que configuramos no Azure)
+# Define a porta do Container App para 8080 (padrão)
+ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
-# Define o ponto de entrada para o contêiner
+# Inicia a aplicação
 ENTRYPOINT ["dotnet", "IsCool.dll"]
