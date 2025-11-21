@@ -12,7 +12,7 @@ env:
   REPOSITORY_NAME: iscool
   
   # Configurações do Azure Container Apps (Confirme se AZURE_CONTAINER_APP está correto: iscool-api vs iscool-aca-env)
-  AZURE_CONTAINER_APP: iscool-api 
+  AZURE_CONTAINER_APP: iscool-aca-env
   AZURE_CONTAINER_APP_RESOURCE_GROUP: ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }}
   
   # Tags da imagem
