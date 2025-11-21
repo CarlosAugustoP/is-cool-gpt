@@ -9,17 +9,17 @@ WORKDIR /src
 COPY *.sln .
 
 # Copia os arquivos de projeto (incluindo o arquivo principal IsCool.csproj).
+# Eles são copiados para /src/IsCool/ e /src/IsCool.Tests/
 COPY ["IsCool/IsCool.csproj", "IsCool/"]
 COPY ["IsCool.Tests/IsCool.Tests.csproj", "IsCool.Tests/"]
 
 # Restaura as dependências
 RUN dotnet restore "IsCool/IsCool.csproj"
 
-# CRUCIAL: Copia TODO o conteúdo do diretório IsCool/ para o WORKDIR /src/IsCool/.
-# Isso garante que todos os Controllers, Services e o appsettings.json
-# criado pelo CI/CD estejam disponíveis na pasta de trabalho para o BUILD.
-# O contexto de build é a raiz do repo, então ele pega IsCool/ e joga para /src/IsCool/
-COPY IsCool/ .
+# CRUCIAL: Copia TODO o conteúdo do diretório IsCool/ (os arquivos de código-fonte como Program.cs, Controllers/) 
+# para o diretório IsCool/ DENTRO do WORKDIR (/src/IsCool/).
+# Isso resolve o erro CS5001 e garante que o compilador encontre o Program.cs.
+COPY IsCool/. IsCool/
 WORKDIR "/src/IsCool"
 
 # Faz o build da aplicação
