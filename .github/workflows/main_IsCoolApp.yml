@@ -11,8 +11,8 @@ env:
   ACR_LOGIN_SERVER: iscoolapp.azurecr.io
   REPOSITORY_NAME: iscool
   
-  # Configurações do Azure Container Apps
-  AZURE_CONTAINER_APP: iscool-aca-env
+  # Configurações do Azure Container Apps (Confirme se AZURE_CONTAINER_APP está correto: iscool-api vs iscool-aca-env)
+  AZURE_CONTAINER_APP: iscool-api 
   AZURE_CONTAINER_APP_RESOURCE_GROUP: ${{ secrets.AZURE_CONTAINER_APP_RESOURCE_GROUP }}
   
   # Tags da imagem
@@ -36,7 +36,7 @@ jobs:
         dotnet-version: '8.0.x'
 
     # -------------------------------------
-    # 🧪 3. Testes Unitários (Blindagem) - CORREÇÃO CRUCIAL
+    # 🧪 3. Testes Unitários (Blindagem)
     # -------------------------------------
     - name: 3. Executar Testes Unitários
       run: |
@@ -52,7 +52,6 @@ jobs:
     # -------------------------------------
     - name: 4. Criar appsettings.json com Secrets (No Diretório IsCool/)
       run: |
-        # CORREÇÃO: O arquivo é criado DENTRO da pasta da aplicação (IsCool/)
         cat <<EOF > IsCool/appsettings.json
         {
           "Logging": {
@@ -80,7 +79,6 @@ jobs:
     - name: 5. Instalar jq e Validar JSON
       run: |
         sudo apt-get update && sudo apt-get install -y jq
-        # CORREÇÃO: Valida o arquivo no caminho correto (IsCool/appsettings.json)
         jq . IsCool/appsettings.json > /dev/null
 
     # -------------------------------------
@@ -106,14 +104,21 @@ jobs:
         tags: |
           ${{ env.IMAGE_NAME_SHA }}
           ${{ env.IMAGE_NAME_LATEST }}
-        file: IsCool/Dockerfile 
-
+        file: IsCool/Dockerfile # Ajustado para o caminho correto do Dockerfile
+        
     # -------------------------------------
-    # 🚀 6. Deploy no Azure Container Apps
+    # 🚀 6. Deploy no Azure Container Apps (FORÇANDO NOVA REVISÃO COM SHA)
     # -------------------------------------
     - name: 9. Deploy (Update) no Azure Container Apps
       run: |
+        # Gerando um sufixo curto baseado no SHA para o nome da revisão
+        REVISION_SUFFIX=$(echo ${{ github.sha }} | cut -c1-8)
+
+        # Comando de deploy: 
+        # 1. Usa a tag SHA exclusiva.
+        # 2. Usa o revision-suffix para garantir que o Azure crie uma nova revisão em vez de reutilizar uma antiga.
         az containerapp update \
           --name ${{ env.AZURE_CONTAINER_APP }} \
           --resource-group ${{ env.AZURE_CONTAINER_APP_RESOURCE_GROUP }} \
-          --image ${{ env.IMAGE_NAME_LATEST }}
+          --image ${{ env.IMAGE_NAME_SHA }} \
+          --revision-suffix $REVISION_SUFFIX
