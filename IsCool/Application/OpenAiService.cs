@@ -18,6 +18,7 @@ namespace Resumai.Services.Application
         public async Task<IsCoolResponseDto> CallChat(PromptBuilder p)
         {
             var key = _configuration.GetValue<string>("OpenAiApiKey");
+            Console.WriteLine("Using OpenAI API Key: " + key);
             ChatClient client = new(model: "gpt-4o", apiKey: key);
             var (options, prompt) = p.Build();
             var msgs = new List<ChatMessage>()
