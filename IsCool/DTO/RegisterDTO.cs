@@ -14,7 +14,7 @@ namespace IsCool.DTO
         string Password,
         [MaxLength(10)]
         string UserName,
-        [MaxLength(10)]
+        [MaxLength(30)]
         string StudentOf,
         Language Language
     );

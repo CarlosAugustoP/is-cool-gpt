@@ -59,6 +59,16 @@ namespace IsCool.Controller
             var history = await _chatService.GetChatHistory(CurrentUser!, pageNumber, pageSize);
             return Ok(Result<Dictionary<Guid, string?>>.Success(history));
         }
+        /// <summary>
+        /// Obtém as mensagens de um chat específico com paginação.
+        /// </summary>
+        [HttpGet("{chatId:guid}/messages")]
+        [RequireProfileFilter]
+        public async Task<IActionResult> GetChatMessages(Guid chatId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var messages = await _chatService.GetByChat(CurrentUser!, chatId, pageNumber, pageSize);
+            return Ok(Result<List<MessageDTO>>.Success(messages));
+        }
         
     }
 }

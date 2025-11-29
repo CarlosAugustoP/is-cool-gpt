@@ -67,9 +67,19 @@ namespace IsCool.Services
             {
                 return chat.Name;
             }
+            
+            var str = chat.PromptMessage.ToList()
+                .FirstOrDefault(x=> x.WhoSent == WhoSentEnum.AI)?.Message;
 
-            var json = JsonSerializer.Deserialize<IsCoolResponseDto>(chat.PromptMessage.First().Message);
+            if (str == null)
+            {
+                throw new DomainException("Cannot generate chat name without AI response");
+            }
+            
+            var json = JsonSerializer.Deserialize<IsCoolResponseDto>(str);
+            
             var content = json!.Summary;
+            Console.WriteLine(content);
 
             var chatName = await _openAiService.CallChat("Generate a concise and relevant name for a conversation about the following topic: " + content +
                 "Make it short, no more than 5 words, and avoid special characters.");
@@ -85,7 +95,9 @@ namespace IsCool.Services
             if (pageNumber < 1 || pageSize < 1) throw new DomainException("Invalid request");
 
             return await _db.Chats
-                .Where(x => x.UserId == user.Id)
+                .OrderByDescending(x => x.Timestamp)
+                .Include(x => x.PromptMessage)
+                .Where(x => x.UserId == user.Id && x.PromptMessage.Any())
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToDictionaryAsync(x => x.Id, x => x.Name);
@@ -101,6 +113,7 @@ namespace IsCool.Services
                 ?? throw new NotFoundException("Could not find chat");
 
             return firstQuery.PromptMessage
+                .OrderBy(x => x.Timestamp)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList()

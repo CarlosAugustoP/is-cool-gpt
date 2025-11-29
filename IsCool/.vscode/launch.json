@@ -8,7 +8,7 @@
             "name": ".NET Core Launch (console)",
             "type": "coreclr",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/Debug/net9.0/IsCool.dll",
+            "program": "${workspaceFolder}/bin/Debug/net8.0/IsCool.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "env": {
