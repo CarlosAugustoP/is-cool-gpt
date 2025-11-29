@@ -71,7 +71,7 @@ jobs:
             "Audience": "IsCoolUsers",
             "ExpireMinutes": 60
           },
-          "OpenAiApiKey":"${{ secrets.OPENAI_API_KEY }}"
+          "OpenAiApiKey":"${{ secrets.OPEN_AI_API_KEY }}"
         }
         EOF
         echo "appsettings.json criado com sucesso em IsCool/."
