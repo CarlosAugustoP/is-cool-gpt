@@ -24,3 +24,6 @@ The **IsCool API** is a modern and scalable backend built with **ASP.NET Core 8.
 | **Security** | Authentication via JWT Bearer tokens |
 | **Code Quality** | Unit tests using XUnit + Moq |
 | **Development Workflow** | Full CI/CD automation: build → test → Docker image → deploy |
+
+## Front-end repository
+https://github.com/CarlosAugustoP/iscool-front
